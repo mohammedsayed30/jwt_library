@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: jwt-library
+
+---
+
+spring:
+  profiles: dev, stage
+
+
+randomjokeapi:
+  url: https://official-joke-api.appspot.com/random_joke
+
+---
+
+
+spring:
+  profiles: prod
+
+
+randomjokeapi:
+  url: https://official-joke-api.appspot.com/random_joke
