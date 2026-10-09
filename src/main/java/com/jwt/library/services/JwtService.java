@@ -31,11 +31,13 @@ public class JwtService {
 
 	//generate the token with extra tokens
 	public String generateToken(Map<String, Object> Claims , UserDetails userDetails) {
+
+        long now  = System.currentTimeMillis();
 		return Jwts.builder()
         .claims(Claims)
         .subject(userDetails.getUsername())
-        .issuedAt(new Date(System.currentTimeMillis()))
-        .expiration(new Date(System.currentTimeMillis() + jwtExpiration)) //one month
+        .issuedAt(new Date(now))
+        .expiration(new Date(now + jwtExpiration)) //one month
         .signWith(getSigningKey())
         .compact();
 	}
