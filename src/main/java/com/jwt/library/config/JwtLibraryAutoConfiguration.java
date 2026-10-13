@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 
 import com.jwt.library.filters.JwtAuthenticationFilter;
 import com.jwt.library.services.JwtService;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 @AutoConfiguration
 @ConditionalOnClass({
@@ -30,7 +31,8 @@ public class JwtLibraryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
-        return new JwtAuthenticationFilter(jwtService, null);
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService,
+            UserDetailsService userDetailsService) {
+        return new JwtAuthenticationFilter(jwtService, userDetailsService);
     }
 }
