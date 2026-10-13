@@ -19,8 +19,8 @@ public class JwtLibraryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public JwtProperties jwtProperties() {
-        return new JwtProperties();
+    public JwtService jwtService(JwtProperties jwtProperties) {
+        return new JwtService(jwtProperties);
     }
 
     @Bean
