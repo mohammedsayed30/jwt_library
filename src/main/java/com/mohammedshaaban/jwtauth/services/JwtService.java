@@ -1,4 +1,4 @@
-package com.jwt.library.services;
+package com.mohammedshaaban.jwtauth.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
-import com.jwt.library.config.JwtProperties;
+import com.mohammedshaaban.jwtauth.config.JwtProperties;
 
 public class JwtService {
 

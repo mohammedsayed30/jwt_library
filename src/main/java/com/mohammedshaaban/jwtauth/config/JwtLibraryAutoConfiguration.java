@@ -1,4 +1,4 @@
-package com.jwt.library.config;
+package com.mohammedshaaban.jwtauth.config;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import com.jwt.library.filters.JwtAuthenticationFilter;
-import com.jwt.library.services.JwtService;
+import com.mohammedshaaban.jwtauth.filters.JwtAuthenticationFilter;
+import com.mohammedshaaban.jwtauth.services.JwtService;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 

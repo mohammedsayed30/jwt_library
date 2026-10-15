@@ -1,4 +1,4 @@
-package com.jwt.library.filters;
+package com.mohammedshaaban.jwtauth.filters;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import com.jwt.library.services.JwtService;
+import com.mohammedshaaban.jwtauth.services.JwtService;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
