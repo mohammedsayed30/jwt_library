@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.jwt.library</groupId>
-    <artifactId>jwt-spring-boot-starter</artifactId>
+    <artifactId>jwt-auth-boot-starter</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>JWTLibrary</name>
-    <description>JWT Library for resuse</description>
+    <name>JWT Auth Boot Starter</name>
+    <description>Spring Boot starter for JWT-based authentication and request filtering. </description>
     <packaging>jar</packaging>
 
     <properties>
