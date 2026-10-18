@@ -1,8 +1,6 @@
 package com.mohammedshaaban.jwtauth.services;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,7 +18,8 @@ import com.mohammedshaaban.jwtauth.config.JwtProperties;
  * Creates signed JWTs and reads their claims using the configured signing
  * secret.
  *
- * <p>The token subject is the {@link UserDetails#getUsername() username}
+ * <p>
+ * The token subject is the {@link UserDetails#getUsername() username}
  * supplied by Spring Security. Generated tokens are signed with an HMAC key
  * derived from the Base64-encoded secret in {@link JwtProperties}.
  */
@@ -59,7 +58,7 @@ public class JwtService {
 	 * and expiration time. The service sets the standard subject and time
 	 * claims in addition to the supplied claims.
 	 *
-	 * @param Claims additional application claims to include in the token
+	 * @param Claims      additional application claims to include in the token
 	 * @param userDetails user whose username becomes the token subject
 	 * @return a compact, signed JWT
 	 */
@@ -98,8 +97,8 @@ public class JwtService {
 	/**
 	 * Parses and verifies the token, then resolves a value from its claims.
 	 *
-	 * @param <T> type of the value returned by the resolver
-	 * @param token compact JWT to parse
+	 * @param <T>            type of the value returned by the resolver
+	 * @param token          compact JWT to parse
 	 * @param claimsResolver function that selects a value from the verified claims
 	 * @return the value produced by the resolver
 	 */
@@ -111,7 +110,8 @@ public class JwtService {
 	/**
 	 * Parses a signed token and returns its verified claims.
 	 *
-	 * <p>A leading {@code Bearer } prefix is removed when present. Signature
+	 * <p>
+	 * A leading {@code Bearer } prefix is removed when present. Signature
 	 * verification failures and malformed tokens are reported by the JWT
 	 * library as exceptions.
 	 *
@@ -158,7 +158,7 @@ public class JwtService {
 	 * Checks that the token subject matches the user and that the token has not
 	 * expired.
 	 *
-	 * @param token compact JWT to validate
+	 * @param token       compact JWT to validate
 	 * @param userDetails user that the token is expected to identify
 	 * @return {@code true} if the subject matches and the token is not expired
 	 */
