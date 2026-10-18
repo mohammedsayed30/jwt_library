@@ -22,7 +22,8 @@ import com.mohammedshaaban.jwtauth.services.JwtService;
  * Authenticates servlet requests using a JWT supplied in the
  * {@code Authorization} header.
  *
- * <p>Requests without a {@code Bearer} token pass through unchanged. A token
+ * <p>
+ * Requests without a {@code Bearer} token pass through unchanged. A token
  * rejected by token validation does not establish an authentication, and JWT
  * parsing failures clear the security context before the request continues
  * through the filter chain.
@@ -34,9 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     /**
      * Creates a filter backed by the JWT parser and the application's user
-     * lookup service.
+     * lookup service to authenticate requests if they contain a valid JWT.
      *
-     * @param JwtService service used to extract and validate token information
+     * @param JwtService         service used to extract and validate token
+     *                           information
      * @param userDetailsService service used to load users by token subject
      */
     public JwtAuthenticationFilter(JwtService JwtService, UserDetailsService userDetailsService) {
@@ -48,14 +50,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * Checks for a bearer token, loads its subject, and sets the request's
      * Spring Security authentication when the token is valid.
      *
-     * <p>JWT parsing exceptions clear the security context; the request is
+     * <p>
+     * JWT parsing exceptions clear the security context; the request is
      * then passed to the next filter.
      *
-     * @param request current servlet request
-     * @param response current servlet response
+     * @param request     current servlet request
+     * @param response    current servlet response
      * @param filterChain remaining filters to invoke
-     * @throws ServletException if a servlet error occurs while processing the request
-     * @throws IOException if an input or output error occurs while processing the request
+     * @throws ServletException if a servlet error occurs while processing the
+     *                          request
+     * @throws IOException      if an input or output error occurs while processing
+     *                          the request
      */
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
