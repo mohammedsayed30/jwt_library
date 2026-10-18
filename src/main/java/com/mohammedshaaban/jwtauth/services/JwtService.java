@@ -16,7 +16,8 @@ import com.mohammedshaaban.jwtauth.config.JwtProperties;
 
 /**
  * Creates signed JWTs and reads their claims using the configured signing
- * secret.
+ * secret and implement all the functionalities needed to use JWT as a
+ * authentication mechanism.
  *
  * <p>
  * The token subject is the {@link UserDetails#getUsername() username}
@@ -32,7 +33,8 @@ public class JwtService {
 	private final long expirationMillis;
 
 	/**
-	 * Creates a service using the supplied JWT configuration.
+	 * Creates a service using the supplied JWT configuration to get them directly
+	 * from the properties.
 	 *
 	 * @param jwtProperties properties containing the signing secret and token
 	 *                      lifetime
