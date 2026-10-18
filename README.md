@@ -19,8 +19,8 @@ Spring Security filter chain.
 
 ## Add the dependency
 
-The current project version is `1.0-SNAPSHOT`. Until the library is published
-to a Maven repository, build and install it locally from the library project:
+The current project version is `1.0.0`. To build and install it in your local
+Maven repository for development, run this from the library project:
 
 ```shell
 mvn install
@@ -32,12 +32,13 @@ Then add the starter to your Spring Boot application's `pom.xml`:
 <dependency>
     <groupId>com.mohammedshaaban.jwtauth</groupId>
     <artifactId>jwt-auth-boot-starter</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
-Once a release is published, use its released version and configure the
-repository that hosts it if it is not available from Maven Central.
+To use the dependency from another project, first publish the release to a
+Maven repository accessible to that project. Configure that repository in the
+consumer project if it is not available from Maven Central.
 
 ### Other dependencies
 

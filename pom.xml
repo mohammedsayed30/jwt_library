@@ -13,7 +13,7 @@
 
     <groupId>com.mohammedshaaban.jwtauth</groupId>
     <artifactId>jwt-auth-boot-starter</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>JWT Auth Boot Starter</name>
     <description>Spring Boot starter for JWT-based authentication and request filtering. </description>
     <packaging>jar</packaging>
