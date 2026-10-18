@@ -9,9 +9,12 @@ import jakarta.validation.constraints.Size;
 import java.time.Duration;
 
 /**
- * Configuration properties used to sign and validate JWTs.
+ * Configuration properties used to sign and validate JWTs to access them
+ * directly from the properties as long as they are defined in the application
+ * properties.
  *
- * <p>Configure these values with the {@code jwt.secret} and
+ * <p>
+ * Configure these values with the {@code jwt.secret} and
  * {@code jwt.expiration-time} properties. The secret is expected to be
  * Base64-encoded and must contain at least 32 characters. Token expiration
  * defaults to one day.

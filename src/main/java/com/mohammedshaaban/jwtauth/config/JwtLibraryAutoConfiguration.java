@@ -15,9 +15,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Configures the JWT services and servlet filter when Spring Security and the
- * servlet API are available.
+ * servlet API are available to enable autoconfiguration in the client side.
  *
- * <p>The filter is registered only when the application provides a
+ * <p>
+ * The filter is registered only when the application provides a
  * {@link UserDetailsService} and is running as a servlet web application. An
  * application can replace either bean by defining its own bean of the same
  * type.
@@ -43,7 +44,7 @@ public class JwtLibraryAutoConfiguration {
      * Creates the servlet filter that authenticates requests containing a
      * bearer token.
      *
-     * @param jwtService the service used to parse and validate tokens
+     * @param jwtService         the service used to parse and validate tokens
      * @param userDetailsService the application service used to load token subjects
      * @return the JWT authentication filter
      */
