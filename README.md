@@ -1,32 +1,60 @@
 # JWT Auth Boot Starter
 
-A Spring Boot starter for adding JSON Web Token (JWT) authentication to
-Spring MVC applications using Spring Security. It provides a configurable
-`JwtService` for generating and validating signed tokens and a servlet filter
-that reads bearer tokens from the `Authorization` header.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Java 17+](https://img.shields.io/badge/Java-17%2B-blue)
+![Spring Boot 3.x](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
 
-The starter supplies JWT token handling and request authentication. Your
-application remains responsible for user storage, credential verification,
-login and logout endpoints, authorization rules, and adding the filter to its
-Spring Security filter chain.
+A Spring Boot starter that adds JSON Web Token (JWT) authentication to Spring MVC
+applications secured with Spring Security.
+
+It gives you two things:
+
+- **`JwtService`**: generates and validates signed tokens.
+- **`JwtAuthenticationFilter`**: reads the bearer token from the `Authorization`
+  header and authenticates the request.
+
+Your application stays in control of user storage, password verification, login
+endpoints, and authorization rules. The starter only handles tokens.
+
+## Table of contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Step 1: Provide user lookup](#step-1-provide-user-lookup)
+- [Step 2: Register the filter](#step-2-register-the-filter)
+- [Step 3: Create a login endpoint](#step-3-create-a-login-endpoint)
+- [Step 4: Call protected endpoints](#step-4-call-protected-endpoints)
+- [Using `JwtService` directly](#using-jwtservice-directly)
+- [How it works](#how-it-works)
+- [What the starter does and does not do](#what-the-starter-does-and-does-not-do)
+- [Troubleshooting](#troubleshooting)
+- [Security recommendations](#security-recommendations)
+- [License](#license)
 
 ## Requirements
 
-- Java 17 or later
-- Spring Boot 3.x (the library is currently built with Spring Boot 3.1.5)
-- A servlet-based Spring application, such as one using Spring MVC
-- An application-provided `UserDetailsService`
+| Requirement | Details |
+|---|---|
+| Java | 17 or later |
+| Spring Boot | 3.x. Built and tested with **3.1.5**. Other 3.x versions are expected to work but have not been verified. Spring Boot 2.x is not supported (it uses `javax.*`, this library uses `jakarta.*`) |
+| Application type | Servlet-based (Spring MVC) |
+| Required bean | A `UserDetailsService` provided by your application |
 
-## Add the dependency
+## Installation
 
-The current project version is `1.0.0`. To build and install it in your local
-Maven repository for development, run this from the library project:
+The starter is not yet published to a public Maven repository, so install it
+from source:
 
 ```shell
-mvn install
+git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+cd YOUR_REPO
+mvn clean install
 ```
 
-Then add the starter to your Spring Boot application's `pom.xml`:
+This installs the library into your local Maven repository (`~/.m2`). Then add
+it to your application's `pom.xml`:
 
 ```xml
 <dependency>
@@ -36,18 +64,7 @@ Then add the starter to your Spring Boot application's `pom.xml`:
 </dependency>
 ```
 
-To use the dependency from another project, first publish the release to a
-Maven repository accessible to that project. Configure that repository in the
-consumer project if it is not available from Maven Central.
-
-### Other dependencies
-
-The starter declares Spring Security, the JJWT API and runtime implementation,
-JJWT's Jackson integration, and Spring Boot validation as dependencies. Maven
-resolves these transitively, so applications generally do not need to add
-them separately.
-
-Your application still needs a servlet web stack, commonly:
+Your application also needs a servlet web stack, usually:
 
 ```xml
 <dependency>
@@ -56,15 +73,23 @@ Your application still needs a servlet web stack, commonly:
 </dependency>
 ```
 
-The starter does not provide your application's users, persistence layer,
-password encoder, or login endpoint. Add the dependencies needed by your own
-implementation (for example, a database driver and Spring Data starter if
-users are stored in a database).
+Spring Security, JJWT, and Spring Boot validation come with the starter
+transitively, so you do not need to add them yourself.
 
-## Configure JWT settings
+## Quick start
 
-Set the signing secret and token lifetime in the consuming application's
-configuration. For example, in `application.yaml`:
+1. Add the dependency (see above).
+2. Set `jwt.secret` in your configuration.
+3. Provide a `UserDetailsService` bean.
+4. Add `JwtAuthenticationFilter` to your `SecurityFilterChain`.
+5. Create a login endpoint that calls `jwtService.generateToken(...)`.
+
+Each step is explained below. Imports are omitted from the code examples for brevity.
+
+## Configuration
+
+Set the properties in the application that uses the starter, for example in
+`application.yml`:
 
 ```yaml
 jwt:
@@ -72,34 +97,41 @@ jwt:
   expiration-time: 24h
 ```
 
-`jwt.secret` must be non-blank and at least 32 characters. The value is
-Base64-decoded and used as an HMAC signing key; use a cryptographically random
-secret with at least 32 random bytes. For example, generate a Base64-encoded
-32-byte secret with:
+or in `application.properties`:
+
+```properties
+jwt.secret=${JWT_SECRET}
+jwt.expiration-time=24h
+```
+
+| Property | Required | Default | Description |
+|---|---|---|---|
+| `jwt.secret` | Yes | none | Base64-encoded signing key. The application fails to start if it is missing or blank |
+| `jwt.expiration-time` | No | `1d` | Token lifetime as a Spring `Duration`, for example `30m`, `12h`, `7d` |
+
+### Generating a secret
+
+The secret is Base64-decoded and used as an HMAC signing key. HS256 needs a key
+of at least 256 bits, so the decoded key must be **at least 32 bytes**. Generate
+a suitable one with:
 
 ```shell
 openssl rand -base64 32
 ```
 
-Keep the secret outside source control. Set it through an environment
-variable, secret manager, or another secure configuration mechanism. Tokens
-can only be verified by applications configured with the same secret.
+This produces a 44-character string. Note that a Base64 string of only 32
+characters decodes to just 24 bytes, which is too short, so always generate the
+secret with the command above instead of typing one by hand.
 
-`jwt.expiration-time` is a Spring `Duration` value. It defaults to `1d` (one
-day) when omitted. Examples include `30m`, `12h`, and `7d`.
+Keep the secret out of source control. Provide it through an environment
+variable, a secret manager, or another secure mechanism. Tokens can only be
+verified by applications that use the same secret.
 
-## Provide user lookup
+## Step 1: Provide user lookup
 
-The starter registers a `JwtService` bean automatically. It registers a
-`JwtAuthenticationFilter` bean only when:
-
-- Spring Security and the servlet API are on the classpath;
-- the application is a servlet web application; and
-- the application provides a `UserDetailsService`.
-
-Implement `UserDetailsService` to load users by the username stored in the JWT
-subject. The service must return the user's current authorities, which the
-filter places in the Spring Security authentication:
+Implement `UserDetailsService`. It must load users by the username stored in the
+token subject and return their **current** authorities, which the filter places
+in the Spring Security authentication.
 
 ```java
 @Service
@@ -119,17 +151,31 @@ public class ApplicationUserDetailsService implements UserDetailsService {
 }
 ```
 
-Replace `UserRepository` and the lookup logic with the user model and
-persistence mechanism used by your application.
+Your user entity can implement `UserDetails` directly, as above. If you prefer
+to keep your entity free of Spring Security types, map it to Spring's builder
+instead:
 
-## Configure the Spring Security filter chain
+```java
+return org.springframework.security.core.userdetails.User
+        .withUsername(account.getEmail())
+        .password(account.getPassword())
+        .authorities(account.getRole())
+        .build();
+```
 
-The starter creates the filter as a bean, but does not add it to your
-application's `SecurityFilterChain`. Register it explicitly, usually before
+The class name and your entity name are up to you. The starter only needs a
+bean of type `UserDetailsService`. If your application has more than one, mark
+one with `@Primary`.
+
+## Step 2: Register the filter
+
+The starter creates `JwtAuthenticationFilter` as a bean, but it does **not** add
+it to your security chain. Add it yourself, before
 `UsernamePasswordAuthenticationFilter`:
 
 ```java
 @Configuration
+@EnableWebSecurity
 public class SecurityConfiguration {
 
     @Bean
@@ -151,26 +197,38 @@ public class SecurityConfiguration {
 }
 ```
 
-This example assumes a stateless API and disables CSRF protection. Choose CSRF,
-session, CORS, endpoint authorization, and exception handling settings to suit
-your application; do not copy these choices blindly for a browser application
-that uses cookies or server-side sessions.
+This example assumes a stateless API and disables CSRF protection. Choose your
+CSRF, session, CORS, and endpoint rules to match your application. Do not copy
+these choices blindly into a browser application that uses cookies or
+server-side sessions.
 
-The filter checks for an `Authorization` header with the `Bearer ` prefix. If
-the token parses and validates, it loads the subject through
-`UserDetailsService` and sets the Spring Security authentication for the
-request. Requests without a bearer token pass through unauthenticated, so your
-security rules determine whether they are allowed. Invalid JWT parsing clears
-the security context and continues the filter chain; the application should
-configure its normal Spring Security entry point to handle unauthenticated
-access to protected resources.
+You can also return a JSON error for unauthenticated requests by configuring an
+`authenticationEntryPoint` in `exceptionHandling(...)`.
 
-## Generate a token after login
+## Step 3: Create a login endpoint
 
-The starter does not implement a login endpoint or verify passwords. Your
-application must authenticate submitted credentials (for example, using
-Spring Security's `AuthenticationManager`) and, after successful
-authentication, call `JwtService` to issue a token:
+The starter does not verify passwords or provide a login endpoint. Your
+application authenticates the credentials and then asks `JwtService` for a
+token.
+
+First, expose the beans Spring Security needs for password login:
+
+```java
+@Bean
+PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+}
+
+@Bean
+AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    return config.getAuthenticationManager();
+}
+```
+
+When your application has one `UserDetailsService` bean and a `PasswordEncoder`
+bean, Spring Security builds the password-checking provider automatically.
+
+Then write the endpoint:
 
 ```java
 @RestController
@@ -178,78 +236,156 @@ authentication, call `JwtService` to issue a token:
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
 
-    public AuthenticationController(
-            AuthenticationManager authenticationManager,
-            UserDetailsService userDetailsService,
-            JwtService jwtService) {
+    public AuthenticationController(AuthenticationManager authenticationManager,
+                                    JwtService jwtService) {
         this.authenticationManager = authenticationManager;
-        this.userDetailsService = userDetailsService;
         this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
     public TokenResponse login(@RequestBody LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.username(), request.password()));
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
-        UserDetails user = userDetailsService.loadUserByUsername(request.username());
+        UserDetails user = (UserDetails) authentication.getPrincipal();
         return new TokenResponse(jwtService.generateToken(user));
     }
 
-    public record LoginRequest(String username, String password) {
-    }
+    public record LoginRequest(String username, String password) {}
 
-    public record TokenResponse(String accessToken) {
-    }
+    public record TokenResponse(String accessToken) {}
 }
 ```
 
-Configure an `AuthenticationManager` and the application's
-`PasswordEncoder`/authentication provider as appropriate for its user store.
-Do not return passwords or other credentials in the token response.
+Never return passwords or other credentials in the response. Return a small
+response object like the one above instead of your whole user entity.
 
-For subsequent requests, clients send the token as:
+## Step 4: Call protected endpoints
 
-```http
-Authorization: Bearer <access-token>
+Log in and read the token:
+
+```shell
+curl -X POST http://localhost:8080/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"user@example.com","password":"secret"}'
 ```
 
-## Use `JwtService`
+Send the token on later requests:
 
-`JwtService` is available as a Spring bean. It supports:
+```shell
+curl http://localhost:8080/api/profile \
+  -H "Authorization: Bearer <access-token>"
+```
+
+## Using `JwtService` directly
+
+`JwtService` is a Spring bean, so you can inject it anywhere.
+
+Generate a token from a `UserDetails`:
 
 ```java
 String token = jwtService.generateToken(userDetails);
 ```
 
-Additional application claims may be included with the overload:
+Add your own claims:
 
 ```java
 Map<String, Object> claims = Map.of("tenant", tenantId);
 String token = jwtService.generateToken(claims, userDetails);
 ```
 
-The service sets the token subject from `UserDetails.getUsername()`, and adds
-issued-at and expiration timestamps. Use `extractUsername`,
-`extractClaim`, `isTokenExpired`, and `isTokenValid` to inspect or validate
-tokens. Parsing and signature verification errors are reported as JWT
-exceptions; callers should handle invalid tokens appropriately.
+The service sets the subject from `UserDetails.getUsername()` and adds the
+issued-at and expiration timestamps. To read or validate tokens, use
+`extractUsername`, `extractClaim`, `isTokenExpired`, and `isTokenValid`.
+Parsing and signature errors are reported as JWT exceptions (`JwtException`),
+so handle invalid tokens in your code.
 
-## What the application must implement
+Do not put sensitive data in claims. A JWT payload is only signed, not
+encrypted, so anyone who holds the token can read it.
 
-- Store and load users, including their current authorities.
-- Provide a `UserDetailsService`.
-- Authenticate login credentials and issue tokens from a login endpoint.
-- Configure and register the `JwtAuthenticationFilter` in the
-  `SecurityFilterChain`.
-- Decide which routes are public and which require authentication.
-- Choose appropriate session, CSRF, CORS, and error-handling policies.
-- Store and rotate the signing secret securely.
+## How it works
 
-The starter does not provide refresh tokens, token revocation/blacklisting,
-logout behavior, user registration, password hashing, role/permission
-management, or a login API.
+```
+Client                      Your application
+  |                                |
+  |-- POST /auth/login ----------->|  AuthenticationManager checks the password
+  |<------ access token -----------|  JwtService.generateToken(user)
+  |                                |
+  |-- GET /api/... --------------->|
+  |   Authorization: Bearer <jwt>  |
+  |                                |  JwtAuthenticationFilter:
+  |                                |   1. reads the Bearer token
+  |                                |   2. verifies signature and expiry
+  |                                |   3. loads the user with UserDetailsService
+  |                                |   4. sets the authentication for this request
+  |<------ response ---------------|  your authorization rules decide the outcome
+```
+
+The filter behaves as follows:
+
+- Requests without a `Bearer` token pass through unauthenticated. Your security
+  rules decide whether they are allowed, so public endpoints keep working.
+- If a token fails to parse or validate, the filter clears the security context
+  and continues the chain. Protected endpoints then reject the request through
+  your normal Spring Security entry point.
+- The filter runs on every request, including public ones. An invalid token on a
+  public endpoint is ignored rather than rejected.
+
+The starter registers `JwtService` automatically. It registers
+`JwtAuthenticationFilter` only when Spring Security and the servlet API are on
+the classpath, the application is a servlet web application, and a
+`UserDetailsService` bean exists. You can replace either bean by defining your
+own bean of the same type.
+
+## What the starter does and does not do
+
+**The starter provides:**
+
+- Token generation and validation (`JwtService`)
+- Request authentication from the `Authorization` header (`JwtAuthenticationFilter`)
+- Configuration through `jwt.*` properties, with autocomplete in IDEs that read
+  Spring configuration metadata
+
+**Your application must provide:**
+
+- User storage and a `UserDetailsService`
+- Credential verification and the login endpoint
+- Registration of the filter in the `SecurityFilterChain`
+- Public and protected route rules
+- CSRF, CORS, session, and error-handling policies
+- Secure storage and rotation of the signing secret
+
+**Not included:** refresh tokens, token revocation or blacklisting, logout,
+user registration, password hashing, role and permission management, and
+reactive (WebFlux) support.
+
+## Troubleshooting
+
+| Problem | Likely cause and fix |
+|---|---|
+| `No qualifying bean of type JwtAuthenticationFilter` | The filter is only created when the app is a servlet web app and a `UserDetailsService` bean exists. Add one. Run with `--debug` and check the conditions report for the starter's auto-configuration |
+| Valid token, but protected endpoints return 401 or 403 | The filter was not added to the `SecurityFilterChain`. Add `.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)` |
+| Application fails to start with a `jwt.secret` binding error | `jwt.secret` is missing, blank, or too short. Generate one with `openssl rand -base64 32` |
+| `WeakKeyException` | The secret decodes to fewer than 32 bytes. Generate it with `openssl rand -base64 32` |
+| Tokens stop working after a restart or on another instance | The secret changed or differs between instances. Use the same fixed `jwt.secret` everywhere |
+| `NoUniqueBeanDefinitionException` for `UserDetailsService` | Your application has more than one. Mark one with `@Primary` |
+| Compile or startup errors mentioning `javax.servlet` | You are on Spring Boot 2.x. This starter needs Spring Boot 3.x (`jakarta.*`) |
+| Token rejected as expired | Increase `jwt.expiration-time`, or have the client log in again |
+
+## Security recommendations
+
+- Always serve your API over HTTPS. A bearer token can be used by anyone who
+  obtains it.
+- Keep token lifetimes short, and keep the signing secret out of source control.
+- Rotate the secret if you suspect it has leaked. All existing tokens become
+  invalid when you do.
+- Use the same error message and status for an unknown user and a wrong password
+  at login, so attackers cannot discover which accounts exist.
+- Because there is no revocation, a stolen token stays valid until it expires.
+  Plan for this if your application needs immediate logout.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
