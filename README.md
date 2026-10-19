@@ -336,6 +336,40 @@ The last four methods are account-status flags. Spring Security checks them when
 
 For role-based rules, note that `hasRole("ADMIN")` looks for an authority named `ROLE_ADMIN`, while `hasAuthority("ADMIN")` looks for exactly `ADMIN`. Add the `ROLE_` prefix when you create role authorities.
 
+### If your users do not have roles
+
+Roles are optional. `UserDetails` still requires `getAuthorities()`, but users
+without roles or permissions should return an empty collection. Do not return
+`null`, an empty role string, or assign a made-up role just to satisfy Spring
+Security.
+
+For an entity or wrapper implementing `UserDetails`:
+
+```java
+@Override
+public Collection<? extends GrantedAuthority> getAuthorities() {
+    return List.of();
+}
+```
+
+When mapping an entity to Spring Security's built-in `User`, provide no
+authorities:
+
+```java
+return org.springframework.security.core.userdetails.User
+        .withUsername(account.getEmail())
+        .password(account.getPassword())
+        .authorities(List.of())
+        .build();
+```
+
+The JWT filter can still authenticate the user with an empty authorities
+collection. Rules such as `.anyRequest().authenticated()` will work, but
+role- or authority-specific rules such as `.hasRole("ADMIN")` will not grant
+access to that user. Use those rules only if your application defines roles or
+permissions; otherwise, base authorization on authentication or other
+application-specific checks.
+
 ### Requirements for your implementation
 
 - Register exactly one `UserDetailsService` bean. If your application has more than one, mark the one the starter should use with `@Primary`.
@@ -564,4 +598,4 @@ reactive (WebFlux) support.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This library is licensed under the [MIT License](LICENSE).
