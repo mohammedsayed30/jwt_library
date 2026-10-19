@@ -244,6 +244,8 @@ Trade-off: your entity now carries security concerns. Mark the `password` field 
 
 Your entity stays a plain class with no Spring Security interface. You convert it inside `loadUserByUsername`.
 
+#### Note:Account in the below sections mean the User Model (adjust the name based on you User model name)
+
 ```java
 @Override
 public UserDetails loadUserByUsername(String email) {
