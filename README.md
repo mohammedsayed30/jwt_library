@@ -38,7 +38,7 @@ endpoints, and authorization rules. The starter only handles tokens.
 | Requirement | Details |
 |---|---|
 | Java | 17 or later |
-| Spring Boot | 3.x. Built and tested with **3.1.5**. Other 3.x versions are expected to work but have not been verified. Spring Boot 2.x is not supported (it uses `javax.*`, this library uses `jakarta.*`) |
+| Spring Boot | 3.x. Built and tested with **3.1.5**. Other later versions are expected to work.|
 | Application type | Servlet-based (Spring MVC) |
 | Required bean | A `UserDetailsService` provided by your application |
 
@@ -48,7 +48,7 @@ The starter is not yet published to a public Maven repository, so install it
 from source:
 
 ```shell
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
+git clone https://github.com/mohammedsayed30/jwt_library.git
 cd YOUR_REPO
 mvn clean install
 ```
